@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	. "github.com/JohnChangUK/verisart/models"
+	. "github.com/JohnChangUK/verisart/utils"
 	"github.com/gorilla/mux"
 	"log"
 	"math/rand"
@@ -9,8 +11,6 @@ import (
 	"strconv"
 	"time"
 )
-
-import . "./models"
 
 var certificates []Certificate
 var users map[string]User
@@ -104,6 +104,8 @@ func createTransfer(w http.ResponseWriter, r *http.Request) {
 			certificates = append(certificates[:index], certificates[index+1:]...)
 			//var certificate Certificate
 			var user User
+			// Create a new Certificate with new User Details
+			// Only changed when other person ACCEPTS the transfer
 			_ = json.NewDecoder(r.Body).Decode(&user)
 			certificate.Transfer.To = user.Email
 			certificate.Transfer.Status = "TRANSFER_IN_PROGRESS"
@@ -121,14 +123,7 @@ func updateTransfer(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	user := User{"userId1", "user1@gmail.com", "User1"}
-	user2 := User{"userId2", "user2@gmail.com", "User2"}
-	certificates = append(certificates, Certificate{"1", "First Certificate", time.Now(),
-		"John", 2019, "Art note",
-		&Transfer{user.Email, "Processing Transfer"}},
-		Certificate{"2", "Second Certificate", time.Now(),
-			"Jim", 2010, "Painting note",
-			&Transfer{user2.Email, "Complete"}})
+	certificates = MockCertificates(certificates)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/certificates", getCertificates).Methods("GET")
