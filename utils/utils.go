@@ -6,7 +6,6 @@ import (
 	. "github.com/JohnChangUK/verisart/model"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"net/http/httputil"
 	"time"
 )
 
@@ -18,13 +17,27 @@ func EncodeToJson(w http.ResponseWriter, v ...interface{}) {
 	}
 }
 
+func DecodeFromJson(w http.ResponseWriter, req *http.Request, v interface{}) {
+	err := json.NewDecoder(req.Body).Decode(&v)
+	req.Body.Close()
+
+	if err != nil {
+		InvalidBody(w, req, err)
+		return
+	}
+}
+
 func MockCertificates(certificates []Certificate) []Certificate {
 	certificates = append(certificates, Certificate{Id: "1", Title: "First Certificate", CreatedAt: time.Now(),
-		OwnerId: "John", Year: 2019, Note: "Art note",
+		OwnerId: "John", Year: 2019, Note: "Blockchain",
 		Transfer: &Transfer{}},
 		Certificate{Id: "2", Title: "Second Certificate", CreatedAt: time.Now(),
-			OwnerId: "Jim", Year: 2010, Note: "Painting note",
+			OwnerId: "John", Year: 3000, Note: "Art",
+			Transfer: &Transfer{}},
+		Certificate{Id: "3", Title: "Third Certificate", CreatedAt: time.Now(),
+			OwnerId: "Jim", Year: 2010, Note: "Painting",
 			Transfer: &Transfer{}})
+
 	return certificates
 }
 
@@ -36,13 +49,4 @@ func badRequest(w http.ResponseWriter, message string) {
 	log.Error(message)
 	w.WriteHeader(http.StatusBadRequest)
 	fmt.Fprintf(w, message)
-}
-
-func PrintHttpRequest(r *http.Request) {
-	output, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		fmt.Println("Error dumping request:", err)
-		return
-	}
-	fmt.Println(string(output))
 }
