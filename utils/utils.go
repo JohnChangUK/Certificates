@@ -4,10 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/JohnChangUK/verisart/model"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
+
+func GetParamsAndSetContentTypeToJson(w http.ResponseWriter, req *http.Request) (map[string]string, string) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(req)
+	authorization := req.Header.Get("Authorization")
+
+	return params, authorization
+}
 
 func EncodeToJson(w http.ResponseWriter, v ...interface{}) {
 	err := json.NewEncoder(w).Encode(v)

@@ -14,9 +14,7 @@ var certificates []Certificate
 
 // This API retrieves all the user's certificates by matching the certificate's owner Id
 func GetUserCertificate(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(req)
-	authorization := req.Header.Get("Authorization")
+	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 	var usersCertificates []Certificate
 
 	for _, certificate := range certificates {
@@ -31,14 +29,13 @@ func GetUserCertificate(w http.ResponseWriter, req *http.Request) {
 
 // Creates a new certificate
 func CreateCertificate(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	userId := req.Header.Get("Authorization")
+	_, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	var certificate Certificate
 	DecodeFromJson(w, req, &certificate)
 
 	certificate.CreatedAt = time.Now()
-	certificate.OwnerId = userId
+	certificate.OwnerId = authorization
 	certificate.Id = xid.New().String()
 	certificate.Transfer = &Transfer{}
 	certificates = append(certificates, certificate)
@@ -48,9 +45,7 @@ func CreateCertificate(w http.ResponseWriter, req *http.Request) {
 
 // Updates the certificate by certificate Id
 func UpdateCertificate(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(req)
-	authorization := req.Header.Get("Authorization")
+	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
 		if certificate.Id == params["id"] && certificate.OwnerId == authorization {
@@ -74,9 +69,7 @@ func UpdateCertificate(w http.ResponseWriter, req *http.Request) {
 
 // Deletes the certificate by by matching the certificate Id with the Params[Id]
 func DeleteCertificate(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(req)
-	authorization := req.Header.Get("Authorization")
+	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
 		if certificate.Id == params["id"] && certificate.OwnerId == authorization {
@@ -93,9 +86,7 @@ func DeleteCertificate(w http.ResponseWriter, req *http.Request) {
 * The Transfer status is changed to PENDING along with User B's email
  */
 func CreateTransfer(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(req)
-	authorization := req.Header.Get("Authorization")
+	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
 		if certificate.Id == params["id"] && certificate.OwnerId == authorization {
@@ -120,9 +111,7 @@ func CreateTransfer(w http.ResponseWriter, req *http.Request) {
 * Transfer struct with a COMPLETE status is sent back as the payload
  */
 func AcceptTransfer(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(req)
-	authorization := req.Header.Get("Authorization")
+	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
 		if certificate.Id == params["id"] && certificate.OwnerId == authorization {
@@ -147,9 +136,7 @@ func AcceptTransfer(w http.ResponseWriter, req *http.Request) {
 * Transfer struct with a DECLINED status is sent back as the payload
  */
 func CancelTransfer(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(req)
-	authorization := req.Header.Get("Authorization")
+	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for _, certificate := range certificates {
 		if certificate.Id == params["id"] && certificate.OwnerId == authorization {
@@ -169,8 +156,7 @@ func GetCertificates(w http.ResponseWriter, req *http.Request) {
 
 // Retrieves a certificate by matching the certificate Id with the Params[Id]
 func GetCertificate(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(req)
+	params, _ := GetParamsAndSetContentTypeToJson(w, req)
 
 	for _, certificate := range certificates {
 		if certificate.Id == params["id"] {
