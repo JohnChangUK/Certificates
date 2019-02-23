@@ -97,7 +97,7 @@ func createTransfer(w http.ResponseWriter, req *http.Request) {
 			DecodeFromJson(w, req, &user)
 
 			user.Id = authorization
-			certificate.Transfer = &Transfer{To: user.Email, Status: "TRANSFER_PENDING"}
+			certificate.Transfer = &Transfer{To: user.Email, Status: Pending}
 			certificates = append(certificates, certificate)
 
 			EncodeToJson(w, certificate)
@@ -118,11 +118,11 @@ func acceptTransfer(w http.ResponseWriter, req *http.Request) {
 			var user User
 			DecodeFromJson(w, req, &user)
 
-			certificate.Transfer = &Transfer{To: user.Email, Status: "TRANSFER_COMPLETE"}
+			certificate.Transfer = &Transfer{}
 			certificate.OwnerId = user.Id
 			certificates = append(certificates, certificate)
 
-			EncodeToJson(w, certificate.Transfer)
+			EncodeToJson(w, Transfer{}.TransferComplete(user.Email))
 			return
 		}
 	}
@@ -135,10 +135,9 @@ func cancelTransfer(w http.ResponseWriter, req *http.Request) {
 
 	for _, certificate := range certificates {
 		if certificate.Id == params["id"] && certificate.OwnerId == authorization {
-			certificate.Transfer = nil
-			transfer := Transfer{Status: "TRANSFER_DECLINED"}
+			certificate.Transfer = &Transfer{}
 
-			EncodeToJson(w, &transfer)
+			EncodeToJson(w, Transfer{}.TransferDeclined())
 			return
 		}
 	}

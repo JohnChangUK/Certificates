@@ -1,6 +1,14 @@
 package model
 
-import "time"
+import (
+	"time"
+)
+
+const (
+	Pending  = "PENDING"
+	Complete = "COMPLETE"
+	Declined = "DECLINED"
+)
 
 type Certificate struct {
 	Id        string    `json:"id"`
@@ -21,4 +29,14 @@ type User struct {
 	Id    string `json:"id"`
 	Email string `json:"email"`
 	Name  string `json:"name"`
+}
+
+func (transfer Transfer) TransferComplete(to string) Transfer {
+	transfer.To = to
+	transfer.Status = Complete
+	return transfer
+}
+
+func (transfer Transfer) TransferDeclined() Transfer {
+	return Transfer{Status: Declined}
 }
