@@ -12,7 +12,8 @@ import (
 )
 
 var certificates []Certificate
-var users map[string]User
+var transfers = make(map[Transfer]User)
+var certificatesTranfer = make(map[*Certificate]map[Transfer]User)
 
 func getCertificates(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -108,13 +109,16 @@ func createTransfer(w http.ResponseWriter, r *http.Request) {
 	for index, certificate := range certificates {
 		if certificate.Id == params["id"] {
 			certificates = append(certificates[:index], certificates[index+1:]...)
+			userId := r.Header.Get("Authorization")
 			//var certificate Certificate
 			var user User
 			// Create a new Certificate with new User Details
 			// Only changed when other person ACCEPTS the transfer
 			_ = json.NewDecoder(r.Body).Decode(&user)
-			certificate.Transfer.To = user.Email
-			certificate.Transfer.Status = "TRANSFER_IN_PROGRESS"
+			user.Id = userId
+			transfers[Transfer{To: user.Email, Status: "TRANSFER_PENDING"}] = user
+			certificate.Transfer = &Transfer{To: user.Email, Status: "TRANSFER_PENDING"}
+			certificatesTranfer[&certificate] = transfers
 			certificates = append(certificates, certificate)
 			if err := json.NewEncoder(w).Encode(certificate); err != nil {
 				log.Println("Error encoding to JSON: ", err)
@@ -124,27 +128,27 @@ func createTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updateTransfer(w http.ResponseWriter, r *http.Request) {
+func acceptTransfer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	// Certificate.OwnerId must be changed the new User.Id
-	userId := r.Header.Get("Authorization")
 	params := mux.Vars(r)
-	var oldCertificate Certificate
+	userId := r.Header.Get("Authorization")
 	for index, certificate := range certificates {
 		if certificate.Id == params["id"] {
-			oldCertificate = certificate
-			dateCreated := certificate.CreatedAt
 			certificates = append(certificates[:index], certificates[index+1:]...)
-			var transfer Transfer
-			_ = json.NewDecoder(r.Body).Decode(&transfer)
-			oldCertificate.OwnerId = userId
-			oldCertificate.CreatedAt = dateCreated
+			var user User
+			_ = json.NewDecoder(r.Body).Decode(&user)
+			user.Id = userId
+			transfers[Transfer{To: user.Email, Status: "TRANSFER_COMPLETE"}] = user
+			certificate.Transfer = &Transfer{To: user.Email, Status: "TRANSFER_COMPLETE"}
+			certificate.OwnerId = user.Id
+			certificatesTranfer[&certificate] = transfers
+			certificates = append(certificates, certificate)
+			if err := json.NewEncoder(w).Encode(certificate); err != nil {
+				log.Println("Error encoding to JSON: ", err)
+			}
+			return
 		}
 	}
-	if err := json.NewEncoder(w).Encode(oldCertificate); err != nil {
-		log.Println("Error encoding to JSON: ", err)
-	}
-	return
 }
 
 func main() {
@@ -161,6 +165,6 @@ func startHttpServer() {
 	router.HandleFunc("/certificates/{id}", updateCertificate).Methods("PUT")
 	router.HandleFunc("/certificates/{id}", deleteCertificate).Methods("DELETE")
 	router.HandleFunc("/certificates/{id}/transfers", createTransfer).Methods("POST")
-	router.HandleFunc("/certificates/{id}/transfers", updateTransfer).Methods("PUT")
+	router.HandleFunc("/certificates/{id}/transfers", acceptTransfer).Methods("PUT")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
