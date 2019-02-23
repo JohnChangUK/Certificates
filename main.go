@@ -2,13 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	. "github.com/JohnChangUK/verisart/models"
-	. "github.com/JohnChangUK/verisart/utils"
+	. "github.com/JohnChangUK/verisart/model"
+	"github.com/JohnChangUK/verisart/utils"
 	"github.com/gorilla/mux"
+	"github.com/rs/xid"
 	"log"
-	"math/rand"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -18,7 +17,7 @@ var users map[string]User
 func getCertificates(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(certificates); err != nil {
-		log.Fatal("Error encoding to JSON: ", err)
+		log.Println("Error encoding to JSON: ", err)
 	}
 }
 
@@ -28,13 +27,13 @@ func getCertificate(w http.ResponseWriter, r *http.Request) {
 	for _, certificate := range certificates {
 		if certificate.Id == params["id"] {
 			if err := json.NewEncoder(w).Encode(certificate); err != nil {
-				log.Fatal("Error encoding to JSON: ", err)
+				log.Println("Error encoding to JSON: ", err)
 			}
 			return
 		}
 	}
 	if err := json.NewEncoder(w).Encode(&Certificate{}); err != nil {
-		log.Fatal("Error encoding to empty Certificate to JSON: ", err)
+		log.Println("Error encoding to empty Certificate to JSON: ", err)
 	}
 }
 
@@ -44,40 +43,47 @@ func getUserCertificate(w http.ResponseWriter, r *http.Request) {
 	for _, certificate := range certificates {
 		if certificate.Id == params["userId"] {
 			if err := json.NewEncoder(w).Encode(certificate); err != nil {
-				log.Fatal("Error encoding to JSON: ", err)
+				log.Println("Error encoding to JSON: ", err)
 			}
 			return
 		}
 	}
 	if err := json.NewEncoder(w).Encode(&Certificate{}); err != nil {
-		log.Fatal("Error encoding to empty Certificate to JSON: ", err)
+		log.Println("Error encoding to empty Certificate to JSON: ", err)
 	}
 }
 
 func createCertificate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	userId := r.Header.Get("Authorization")
 	var certificate Certificate
 	_ = json.NewDecoder(r.Body).Decode(&certificate)
 	certificate.CreatedAt = time.Now()
-	certificate.Id = strconv.Itoa(rand.Intn(10000000))
+	certificate.OwnerId = userId
+	certificate.Id = xid.New().String()
+	certificate.Transfer = &Transfer{}
 	certificates = append(certificates, certificate)
 	if err := json.NewEncoder(w).Encode(certificate); err != nil {
-		log.Fatal("Error encoding to JSON: ", err)
+		log.Println("Error encoding to JSON: ", err)
 	}
 }
 
 func updateCertificate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	userId := r.Header.Get("Authorization")
 	params := mux.Vars(r)
 	for index, certificate := range certificates {
 		if certificate.Id == params["id"] {
+			dateCreated := certificate.CreatedAt
 			certificates = append(certificates[:index], certificates[index+1:]...)
 			var certificate Certificate
 			_ = json.NewDecoder(r.Body).Decode(&certificate)
-			//certificate.Id = params["id"]
+			certificate.OwnerId = userId
+			certificate.Id = params["id"]
+			certificate.CreatedAt = dateCreated
 			certificates = append(certificates, certificate)
 			if err := json.NewEncoder(w).Encode(certificate); err != nil {
-				log.Fatal("Error encoding to JSON: ", err)
+				log.Println("Error encoding to JSON: ", err)
 			}
 			return
 		}
@@ -111,7 +117,7 @@ func createTransfer(w http.ResponseWriter, r *http.Request) {
 			certificate.Transfer.Status = "TRANSFER_IN_PROGRESS"
 			certificates = append(certificates, certificate)
 			if err := json.NewEncoder(w).Encode(certificate); err != nil {
-				log.Fatal("Error encoding to JSON: ", err)
+				log.Println("Error encoding to JSON: ", err)
 			}
 			return
 		}
@@ -119,12 +125,34 @@ func createTransfer(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateTransfer(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "application/json")
+	// Certificate.OwnerId must be changed the new User.Id
+	userId := r.Header.Get("Authorization")
+	params := mux.Vars(r)
+	var oldCertificate Certificate
+	for index, certificate := range certificates {
+		if certificate.Id == params["id"] {
+			oldCertificate = certificate
+			dateCreated := certificate.CreatedAt
+			certificates = append(certificates[:index], certificates[index+1:]...)
+			var transfer Transfer
+			_ = json.NewDecoder(r.Body).Decode(&transfer)
+			oldCertificate.OwnerId = userId
+			oldCertificate.CreatedAt = dateCreated
+		}
+	}
+	if err := json.NewEncoder(w).Encode(oldCertificate); err != nil {
+		log.Println("Error encoding to JSON: ", err)
+	}
+	return
 }
 
 func main() {
-	certificates = MockCertificates(certificates)
+	certificates = utils.MockCertificates(certificates)
+	startHttpServer()
+}
 
+func startHttpServer() {
 	router := mux.NewRouter()
 	router.HandleFunc("/certificates", getCertificates).Methods("GET")
 	router.HandleFunc("/certificates/{id}", getCertificate).Methods("GET")
@@ -134,6 +162,5 @@ func main() {
 	router.HandleFunc("/certificates/{id}", deleteCertificate).Methods("DELETE")
 	router.HandleFunc("/certificates/{id}/transfers", createTransfer).Methods("POST")
 	router.HandleFunc("/certificates/{id}/transfers", updateTransfer).Methods("PUT")
-
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
