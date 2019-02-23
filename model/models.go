@@ -31,12 +31,10 @@ type User struct {
 	Name  string `json:"name"`
 }
 
-func (transfer Transfer) TransferComplete(to string) Transfer {
-	transfer.To = to
-	transfer.Status = Complete
-	return transfer
+func (transfer Transfer) TransferComplete(to string) *Transfer {
+	return &Transfer{to, Complete}
 }
 
-func (transfer Transfer) TransferDeclined() Transfer {
-	return Transfer{Status: Declined}
+func (transfer Transfer) TransferDeclined() *Transfer {
+	return &Transfer{Status: Declined}
 }

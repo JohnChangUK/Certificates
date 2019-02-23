@@ -28,9 +28,10 @@ func DecodeFromJson(w http.ResponseWriter, req *http.Request, v interface{}) {
 }
 
 func MockCertificates(certificates []Certificate) []Certificate {
-	certificates = append(certificates, Certificate{Id: "1", Title: "First Certificate", CreatedAt: time.Now(),
-		OwnerId: "John", Year: 2019, Note: "Blockchain",
-		Transfer: &Transfer{}},
+	certificates = append(certificates,
+		Certificate{Id: "1", Title: "First Certificate", CreatedAt: time.Now(),
+			OwnerId: "John", Year: 2019, Note: "Blockchain",
+			Transfer: &Transfer{}},
 		Certificate{Id: "2", Title: "Second Certificate", CreatedAt: time.Now(),
 			OwnerId: "John", Year: 3000, Note: "Art",
 			Transfer: &Transfer{}},
