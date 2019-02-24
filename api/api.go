@@ -1,6 +1,7 @@
 package api
 
 import (
+	. "github.com/JohnChangUK/verisart/constants"
 	. "github.com/JohnChangUK/verisart/model"
 	. "github.com/JohnChangUK/verisart/utils"
 	"github.com/gorilla/mux"

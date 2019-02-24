@@ -22,7 +22,7 @@ func EncodeToJson(w http.ResponseWriter, v ...interface{}) {
 	err := json.NewEncoder(w).Encode(v)
 
 	if err != nil {
-		log.Fatal("Error encoding to JSON: ", err)
+		log.Error("Error encoding to JSON: ", err)
 	}
 }
 
