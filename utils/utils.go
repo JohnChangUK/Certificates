@@ -36,8 +36,19 @@ func DecodeFromJson(w http.ResponseWriter, req *http.Request, v interface{}) {
 	}
 }
 
-func MockCertificates(certificates []Certificate) []Certificate {
-	certificates = append(certificates,
+func InvalidBody(w http.ResponseWriter, req *http.Request, err error) {
+	badRequest(w, fmt.Sprintf("Invalid request: %s, error : %s\n", req.URL, err))
+}
+
+func badRequest(w http.ResponseWriter, message string) {
+	log.Error(message)
+	w.WriteHeader(http.StatusBadRequest)
+	fmt.Fprintf(w, message)
+}
+
+func MockCertificates(certificates *[]Certificate) {
+	var emptyCertificates []Certificate
+	*certificates = append(emptyCertificates,
 		Certificate{Id: "1", Title: "First Certificate", CreatedAt: time.Now(),
 			OwnerId: "John", Year: 2019, Note: "Blockchain",
 			Transfer: &Transfer{}},
@@ -47,16 +58,12 @@ func MockCertificates(certificates []Certificate) []Certificate {
 		Certificate{Id: "3", Title: "Third Certificate", CreatedAt: time.Now(),
 			OwnerId: "Jim", Year: 2010, Note: "Painting",
 			Transfer: &Transfer{}})
-
-	return certificates
 }
 
-func InvalidBody(w http.ResponseWriter, req *http.Request, err error) {
-	badRequest(w, fmt.Sprintf("Invalid request: %s, error : %s\n", req.URL, err))
-}
-
-func badRequest(w http.ResponseWriter, message string) {
-	log.Error(message)
-	w.WriteHeader(http.StatusBadRequest)
-	fmt.Fprintf(w, message)
+func AddMockCertificate(certificates *[]Certificate) {
+	var emptyCertificates []Certificate
+	*certificates = append(emptyCertificates,
+		Certificate{Id: "1", Title: "First Certificate",
+			OwnerId: "John", Year: 2019, Note: "Blockchain",
+			Transfer: &Transfer{}})
 }

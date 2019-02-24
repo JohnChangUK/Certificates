@@ -14,7 +14,7 @@ import (
 var certificates []Certificate
 
 // This API retrieves all the user's certificates by matching the certificate's owner Id
-func GetUserCertificate(w http.ResponseWriter, req *http.Request) {
+func GetUserCertificateHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 	var usersCertificates []Certificate
 
@@ -29,7 +29,7 @@ func GetUserCertificate(w http.ResponseWriter, req *http.Request) {
 }
 
 // Creates a new certificate
-func CreateCertificate(w http.ResponseWriter, req *http.Request) {
+func CreateCertificateHandler(w http.ResponseWriter, req *http.Request) {
 	_, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	var certificate Certificate
@@ -45,7 +45,7 @@ func CreateCertificate(w http.ResponseWriter, req *http.Request) {
 }
 
 // Updates the certificate by certificate Id
-func UpdateCertificate(w http.ResponseWriter, req *http.Request) {
+func UpdateCertificateHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
@@ -69,7 +69,7 @@ func UpdateCertificate(w http.ResponseWriter, req *http.Request) {
 }
 
 // Deletes the certificate by by matching the certificate Id with the Params[Id]
-func DeleteCertificate(w http.ResponseWriter, req *http.Request) {
+func DeleteCertificateHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
@@ -86,7 +86,7 @@ func DeleteCertificate(w http.ResponseWriter, req *http.Request) {
 * This API is called when User A creates a Transfer request
 * The Transfer status is changed to PENDING along with User B's email
  */
-func CreateTransfer(w http.ResponseWriter, req *http.Request) {
+func CreateTransferHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
@@ -111,7 +111,7 @@ func CreateTransfer(w http.ResponseWriter, req *http.Request) {
 * The certificate owner Id is changed to User B's Id
 * Transfer struct with a COMPLETE status is sent back as the payload
  */
-func AcceptTransfer(w http.ResponseWriter, req *http.Request) {
+func AcceptTransferHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for index, certificate := range certificates {
@@ -136,7 +136,7 @@ func AcceptTransfer(w http.ResponseWriter, req *http.Request) {
 * Original contents of the certificate is kept the same.
 * Transfer struct with a DECLINED status is sent back as the payload
  */
-func CancelTransfer(w http.ResponseWriter, req *http.Request) {
+func CancelTransferHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for _, certificate := range certificates {
@@ -150,13 +150,13 @@ func CancelTransfer(w http.ResponseWriter, req *http.Request) {
 }
 
 // Retrieves all certificates
-func GetCertificates(w http.ResponseWriter, req *http.Request) {
+func GetCertificatesHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	EncodeToJson(w, certificates)
 }
 
 // Retrieves a certificate by matching the certificate Id with the Params[Id]
-func GetCertificate(w http.ResponseWriter, req *http.Request) {
+func GetCertificateHandler(w http.ResponseWriter, req *http.Request) {
 	params, _ := GetParamsAndSetContentTypeToJson(w, req)
 
 	for _, certificate := range certificates {
@@ -170,18 +170,18 @@ func GetCertificate(w http.ResponseWriter, req *http.Request) {
 }
 
 func StartHttpServer() {
-	certificates = MockCertificates(certificates)
+	MockCertificates(&certificates)
 	router := mux.NewRouter()
 
-	router.HandleFunc("/certificates", GetCertificates).Methods("GET")
-	router.HandleFunc("/certificates/{id}", GetCertificate).Methods("GET")
-	router.HandleFunc("/users/{userId}/certificates", GetUserCertificate).Methods("GET")
-	router.HandleFunc("/certificates", CreateCertificate).Methods("POST")
-	router.HandleFunc("/certificates/{id}", UpdateCertificate).Methods("PUT")
-	router.HandleFunc("/certificates/{id}", DeleteCertificate).Methods("DELETE")
-	router.HandleFunc("/certificates/{id}/transfers", CreateTransfer).Methods("POST")
-	router.HandleFunc("/certificates/{id}/transfers", AcceptTransfer).Methods("PUT")
-	router.HandleFunc("/certificates/{id}/transfers", CancelTransfer).Methods("PATCH")
+	router.HandleFunc("/certificates", GetCertificatesHandler).Methods("GET")
+	router.HandleFunc("/certificates/{id}", GetCertificateHandler).Methods("GET")
+	router.HandleFunc("/users/{userId}/certificates", GetUserCertificateHandler).Methods("GET")
+	router.HandleFunc("/certificates", CreateCertificateHandler).Methods("POST")
+	router.HandleFunc("/certificates/{id}", UpdateCertificateHandler).Methods("PUT")
+	router.HandleFunc("/certificates/{id}", DeleteCertificateHandler).Methods("DELETE")
+	router.HandleFunc("/certificates/{id}/transfers", CreateTransferHandler).Methods("POST")
+	router.HandleFunc("/certificates/{id}/transfers", AcceptTransferHandler).Methods("PUT")
+	router.HandleFunc("/certificates/{id}/transfers", CancelTransferHandler).Methods("PATCH")
 
 	err := http.ListenAndServe(":8000", router)
 
