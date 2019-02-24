@@ -1,9 +1,9 @@
 package api
 
 import (
-	. "github.com/JohnChangUK/verisart/constants"
-	. "github.com/JohnChangUK/verisart/model"
-	. "github.com/JohnChangUK/verisart/utils"
+	. "github.com/JohnChangUK/Certificates/constants"
+	. "github.com/JohnChangUK/Certificates/model"
+	. "github.com/JohnChangUK/Certificates/utils"
 	"github.com/gorilla/mux"
 	"github.com/rs/xid"
 	"log"

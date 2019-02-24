@@ -1,6 +1,6 @@
 package model
 
-import . "github.com/JohnChangUK/verisart/constants"
+import . "github.com/JohnChangUK/Certificates/constants"
 
 type Transfer struct {
 	To     string `json:"email"`

@@ -3,8 +3,8 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	. "github.com/JohnChangUK/verisart/model"
-	"github.com/JohnChangUK/verisart/utils"
+	. "github.com/JohnChangUK/Certificates/model"
+	"github.com/JohnChangUK/Certificates/utils"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"

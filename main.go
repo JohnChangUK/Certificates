@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "github.com/JohnChangUK/verisart/api"
+	. "github.com/JohnChangUK/Certificates/api"
 )
 
 func main() {

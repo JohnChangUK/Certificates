@@ -3,7 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/JohnChangUK/verisart/model"
+	. "github.com/JohnChangUK/Certificates/model"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
