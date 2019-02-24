@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	. "github.com/JohnChangUK/Certificates/model"
 	"github.com/JohnChangUK/Certificates/utils"
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +16,7 @@ import (
 )
 
 const GetCertificatesUrl = "localhost:8000/certificates"
-const GetUserJohnCertificatesUrl = "localhost:8000/users/John/certificates"
+const GetUserJohnCertificatesUrl = "/users/John/certificates"
 
 var mockData = make([][]Certificate, 2)
 
@@ -24,13 +26,14 @@ func init() {
 		"Blockchain note", &Transfer{})
 }
 
-// This test gets all certificates with the User Id 'John'
+// This test gets all certificates with the Path Variable {userId} of "John"
 func TestGetUserCertificateHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", GetUserJohnCertificatesUrl, nil)
 	if err != nil {
 		t.Fatalf("Not able to create request: %v", err)
 	}
 
+	req = addAuthAndSetPathVariables(req, "John", "userId", "John")
 	responseBodyBytes := getResponseBody(t, req, err, GetUserCertificatesHandler)
 
 	var payload [][]Certificate
@@ -39,46 +42,29 @@ func TestGetUserCertificateHandler(t *testing.T) {
 		t.Fatal(jsonUnmarshalErr)
 	}
 
-	jsonPayload, _ := json.Marshal(&payload)
-	jsonMockData, _ := json.Marshal(&mockData)
-
-	if string(jsonPayload) != string(jsonMockData) {
-		t.Fatalf("Error occured... expected payload: %v", mockData)
-	}
+	assert.True(t, reflect.DeepEqual(payload, mockData))
 }
 
+// This test checks if new certificate is created when providing the Title, Year and Note
 func TestCreateCertificateHandler(t *testing.T) {
-	var createCertificatePayload [1][1]Certificate
-	createCertificatePayload[0][0] = Certificate{Id: "1", Title: "First Certificate",
-		OwnerId: "John", Year: 2019, Note: "Blockchain note",
-		Transfer: &Transfer{}}
-
-	mockData[0][0] = Certificate{Id: "1", Title: "First Certificate",
-		OwnerId: "John", Year: 2019, Note: "Blockchain note",
-		Transfer: &Transfer{}}
-
-	jsonMarshalled, err := json.Marshal(&createCertificatePayload)
-	if err != nil {
-		t.Fatalf("Not able to Marshal data into bytes: %v", err)
-	}
-
-	stringData := string(jsonMarshalled)
-	req, err := http.NewRequest("POST", GetCertificatesUrl, strings.NewReader(stringData))
+	req, err := http.NewRequest("POST", GetCertificatesUrl, strings.NewReader(
+		`{"Title": "New Certificate", "Year": 2019, "Note": "Art note"}`))
 	if err != nil {
 		t.Fatalf("Not able to create request: %v", err)
 	}
 
+	req = addAuthAndSetPathVariables(req, "John", "userId", "John")
 	responseBodyBytes := getResponseBody(t, req, err, CreateCertificateHandler)
 
-	var payload [][]Certificate
+	var payload []Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
 	if jsonUnmarshalErr != nil {
 		t.Fatal(jsonUnmarshalErr)
 	}
 
-	if !reflect.DeepEqual(payload, mockData) {
-		t.Fatalf("Error occured... expected payload: %v", mockData)
-	}
+	assert.True(t, reflect.DeepEqual("New Certificate", payload[0].Title))
+	assert.True(t, reflect.DeepEqual(2019, payload[0].Year))
+	assert.True(t, reflect.DeepEqual("Art note", payload[0].Note))
 }
 
 func TestUpdateCertificateHandler(t *testing.T) {
@@ -113,6 +99,12 @@ func TestUpdateCertificateHandler(t *testing.T) {
 	if !reflect.DeepEqual(payload, mockData) {
 		t.Fatalf("Error occured... expected payload: %v", mockData)
 	}
+}
+
+func addAuthAndSetPathVariables(req *http.Request, auth string, pathKey string, pathValue string) *http.Request {
+	req.Header.Add("Authorization", auth)
+	req = mux.SetURLVars(req, map[string]string{pathKey: pathValue})
+	return req
 }
 
 func TestGetCertificateHandler(t *testing.T) {
