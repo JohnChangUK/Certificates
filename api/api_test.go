@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -30,7 +31,7 @@ func TestGetUserCertificateHandler(t *testing.T) {
 		t.Fatalf("Not able to create request: %v", err)
 	}
 
-	responseBodyBytes := startServerAndGetResponse(t, req, err)
+	responseBodyBytes := getResponseBody(t, req, err)
 
 	var payload [][]Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -47,7 +48,16 @@ func TestGetUserCertificateHandler(t *testing.T) {
 }
 
 func TestCreateCertificateHandler(t *testing.T) {
-	jsonFormat, err := json.Marshal(&mockData)
+	var createCertificatePayload [1][1]Certificate
+	createCertificatePayload[0][0] = Certificate{Id: "1", Title: "First Certificate",
+		OwnerId: "John", Year: 2019, Note: "Blockchain note",
+		Transfer: &Transfer{}}
+
+	mockData[0][0] = Certificate{Id: "1", Title: "First Certificate",
+		OwnerId: "John", Year: 2019, Note: "Blockchain note",
+		Transfer: &Transfer{}}
+
+	jsonFormat, err := json.Marshal(&createCertificatePayload)
 	if err != nil {
 		t.Fatalf("Not able to Marshal data into bytes: %v", err)
 	}
@@ -58,7 +68,7 @@ func TestCreateCertificateHandler(t *testing.T) {
 		t.Fatalf("Not able to create request: %v", err)
 	}
 
-	responseBodyBytes := startServerAndGetResponse(t, req, err)
+	responseBodyBytes := getResponseBody(t, req, err)
 
 	var payload [][]Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -66,10 +76,7 @@ func TestCreateCertificateHandler(t *testing.T) {
 		t.Fatal(jsonUnmarshalErr)
 	}
 
-	jsonPayload, _ := json.Marshal(&payload)
-	jsonMockData, _ := json.Marshal(&mockData)
-
-	if string(jsonPayload) != string(jsonMockData) {
+	if !reflect.DeepEqual(payload, mockData) {
 		t.Fatalf("Error occured... expected payload: %v", mockData)
 	}
 }
@@ -80,7 +87,7 @@ func TestGetCertificateHandler(t *testing.T) {
 		t.Fatalf("Not able to create request: %v", err)
 	}
 
-	responseBodyBytes := startServerAndGetResponse(t, req, err)
+	responseBodyBytes := getResponseBody(t, req, err)
 
 	var payload [][]Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -96,16 +103,10 @@ func TestGetCertificateHandler(t *testing.T) {
 	}
 }
 
-func startServerAndGetResponse(t *testing.T, req *http.Request, err error) []byte {
-	recorder := httptest.NewRecorder()
-	handler := http.HandlerFunc(GetCertificatesHandler)
-	handler.ServeHTTP(recorder, req)
+func getResponseBody(t *testing.T, req *http.Request, err error) []byte {
+	recorder := startMockHttpServer(req)
 	response := recorder.Result()
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code 200, got: %v ", response.Status)
-	}
+	checkIfStatusCodeIs200(response, t)
 
 	responseBodyBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -113,6 +114,22 @@ func startServerAndGetResponse(t *testing.T, req *http.Request, err error) []byt
 	}
 
 	return responseBodyBytes
+}
+
+func checkIfStatusCodeIs200(response *http.Response, t *testing.T) {
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got: %v ", response.Status)
+	}
+}
+
+func startMockHttpServer(req *http.Request) *httptest.ResponseRecorder {
+	recorder := httptest.NewRecorder()
+	handler := http.HandlerFunc(GetCertificatesHandler)
+	handler.ServeHTTP(recorder, req)
+
+	return recorder
 }
 
 /**
