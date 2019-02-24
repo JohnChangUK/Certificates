@@ -64,6 +64,6 @@ func AddMockCertificate(certificates *[]Certificate) {
 	var emptyCertificates []Certificate
 	*certificates = append(emptyCertificates,
 		Certificate{Id: "1", Title: "First Certificate",
-			OwnerId: "John", Year: 2019, Note: "Blockchain",
+			OwnerId: "John", Year: 2019, Note: "Blockchain note",
 			Transfer: &Transfer{}})
 }

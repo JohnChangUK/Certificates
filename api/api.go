@@ -14,7 +14,7 @@ import (
 var certificates []Certificate
 
 // This API retrieves all the user's certificates by matching the certificate's owner Id
-func GetUserCertificateHandler(w http.ResponseWriter, req *http.Request) {
+func GetUserCertificatesHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 	var usersCertificates []Certificate
 
@@ -175,7 +175,7 @@ func StartHttpServer() {
 
 	router.HandleFunc("/certificates", GetCertificatesHandler).Methods("GET")
 	router.HandleFunc("/certificates/{id}", GetCertificateHandler).Methods("GET")
-	router.HandleFunc("/users/{userId}/certificates", GetUserCertificateHandler).Methods("GET")
+	router.HandleFunc("/users/{userId}/certificates", GetUserCertificatesHandler).Methods("GET")
 	router.HandleFunc("/certificates", CreateCertificateHandler).Methods("POST")
 	router.HandleFunc("/certificates/{id}", UpdateCertificateHandler).Methods("PUT")
 	router.HandleFunc("/certificates/{id}", DeleteCertificateHandler).Methods("DELETE")
