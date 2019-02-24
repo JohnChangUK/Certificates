@@ -173,8 +173,6 @@ func StartHttpServer() {
 	MockCertificates(&certificates)
 	router := mux.NewRouter()
 
-	router.HandleFunc("/certificates", GetCertificatesHandler).Methods("GET")
-	router.HandleFunc("/certificates/{id}", GetCertificateHandler).Methods("GET")
 	router.HandleFunc("/users/{userId}/certificates", GetUserCertificatesHandler).Methods("GET")
 	router.HandleFunc("/certificates", CreateCertificateHandler).Methods("POST")
 	router.HandleFunc("/certificates/{id}", UpdateCertificateHandler).Methods("PUT")
@@ -182,6 +180,8 @@ func StartHttpServer() {
 	router.HandleFunc("/certificates/{id}/transfers", CreateTransferHandler).Methods("POST")
 	router.HandleFunc("/certificates/{id}/transfers", AcceptTransferHandler).Methods("PUT")
 	router.HandleFunc("/certificates/{id}/transfers", CancelTransferHandler).Methods("PATCH")
+	router.HandleFunc("/certificates", GetCertificatesHandler).Methods("GET")
+	router.HandleFunc("/certificates/{id}", GetCertificateHandler).Methods("GET")
 
 	err := http.ListenAndServe(":8000", router)
 
