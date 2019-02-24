@@ -18,7 +18,7 @@ func GetParamsAndSetContentTypeToJson(w http.ResponseWriter, req *http.Request) 
 	return params, authorization
 }
 
-func EncodeToJson(w http.ResponseWriter, v ...interface{}) {
+func EncodeToJson(w http.ResponseWriter, v interface{}) {
 	err := json.NewEncoder(w).Encode(v)
 
 	if err != nil {
