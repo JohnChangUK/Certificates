@@ -52,7 +52,7 @@ func TestCreateCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "userId", "John")
-	payload := unmarshalCertificate(t, req, CreateCertificateHandler).(Certificate)
+	payload := unmarshalCertificate(t, req, CreateCertificateHandler)
 
 	assert.True(t, reflect.DeepEqual("New Certificate", payload.Title))
 	assert.True(t, reflect.DeepEqual(2019, payload.Year))
@@ -67,7 +67,7 @@ func TestUpdateCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "id", "1")
-	payload := unmarshalCertificate(t, req, UpdateCertificateHandler).(Certificate)
+	payload := unmarshalCertificate(t, req, UpdateCertificateHandler)
 
 	assert.True(t, reflect.DeepEqual("Updated Certificate", payload.Title))
 	assert.True(t, reflect.DeepEqual(3000, payload.Year))
@@ -86,11 +86,7 @@ func TestDeleteCertificateHandler(t *testing.T) {
 	req = addAuthAndSetPathVariables(req, "John", "id", "1")
 	responseBodyBytes := getResponseBody(t, req, DeleteCertificateHandler)
 
-	var payload []Certificate
-	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
-	if jsonUnmarshalErr != nil {
-		t.Fatal(jsonUnmarshalErr)
-	}
+	payload := unmarshalCertificatesArray(responseBodyBytes, t)
 
 	assert.True(t, reflect.DeepEqual([]Certificate{}, payload))
 }
@@ -105,10 +101,41 @@ func TestCreateTransferHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "id", "1")
-	payload := unmarshalCertificate(t, req, CreateTransferHandler).(Certificate)
+	payload := unmarshalCertificate(t, req, CreateTransferHandler)
 
 	assert.True(t, reflect.DeepEqual("userb@gmail.com", payload.Transfer.To))
 	assert.True(t, reflect.DeepEqual(Pending, payload.Transfer.Status))
+}
+
+func TestAcceptTransferHandler(t *testing.T) {
+	utils.AddMockCertificate(&certificates)
+
+	req, err := http.NewRequest("PUT", CreateTransferUrl, strings.NewReader(
+		`{"id": "UserB", "email": "userb@gmail.com", "name": "User B"}`))
+	if err != nil {
+		t.Fatalf("Not able to create request: %v", err)
+	}
+
+	req = addAuthAndSetPathVariables(req, "John", "id", "1")
+	transfer := unmarshalTransfer(t, req, AcceptTransferHandler)
+
+	assert.True(t, reflect.DeepEqual("userb@gmail.com", transfer.To))
+	assert.True(t, reflect.DeepEqual(Complete, transfer.Status))
+}
+
+func TestCancelTransferHandler(t *testing.T) {
+	utils.AddMockCertificate(&certificates)
+
+	req, err := http.NewRequest("PATCH", CreateTransferUrl, strings.NewReader(
+		`{"id": "UserB", "email": "userb@gmail.com", "name": "User B"}`))
+	if err != nil {
+		t.Fatalf("Not able to create request: %v", err)
+	}
+
+	req = addAuthAndSetPathVariables(req, "John", "id", "1")
+	transfer := unmarshalTransfer(t, req, DeclineTransferHandler)
+
+	assert.True(t, reflect.DeepEqual(Declined, transfer.Status))
 }
 
 func TestGetCertificateHandler(t *testing.T) {
@@ -136,7 +163,7 @@ func TestGetCertificateHandler(t *testing.T) {
 	assert.True(t, reflect.DeepEqual(correctCertificate, payload))
 }
 
-func unmarshalCertificate(t *testing.T, req *http.Request, f func(http.ResponseWriter, *http.Request)) interface{} {
+func unmarshalCertificate(t *testing.T, req *http.Request, f func(http.ResponseWriter, *http.Request)) Certificate {
 	responseBodyBytes := getResponseBody(t, req, f)
 	var payload Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -153,7 +180,19 @@ func unmarshalCertificatesArray(responseBodyBytes []byte, t *testing.T) []Certif
 	if jsonUnmarshalErr != nil {
 		t.Fatal(jsonUnmarshalErr)
 	}
+
 	return payload
+}
+
+func unmarshalTransfer(t *testing.T, req *http.Request, f func(http.ResponseWriter, *http.Request)) Transfer {
+	responseBodyBytes := getResponseBody(t, req, f)
+	var transfer Transfer
+	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &transfer)
+	if jsonUnmarshalErr != nil {
+		t.Fatal(jsonUnmarshalErr)
+	}
+
+	return transfer
 }
 
 func addAuthAndSetPathVariables(req *http.Request, auth string, pathKey string, pathValue string) *http.Request {

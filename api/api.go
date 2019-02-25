@@ -136,7 +136,7 @@ func AcceptTransferHandler(w http.ResponseWriter, req *http.Request) {
 * Original contents of the certificate is kept the same.
 * Transfer struct with a DECLINED status is sent back as the payload
  */
-func CancelTransferHandler(w http.ResponseWriter, req *http.Request) {
+func DeclineTransferHandler(w http.ResponseWriter, req *http.Request) {
 	params, authorization := GetParamsAndSetContentTypeToJson(w, req)
 
 	for _, certificate := range certificates {
@@ -179,7 +179,7 @@ func StartHttpServer() {
 	router.HandleFunc("/certificates/{id}", DeleteCertificateHandler).Methods("DELETE")
 	router.HandleFunc("/certificates/{id}/transfers", CreateTransferHandler).Methods("POST")
 	router.HandleFunc("/certificates/{id}/transfers", AcceptTransferHandler).Methods("PUT")
-	router.HandleFunc("/certificates/{id}/transfers", CancelTransferHandler).Methods("PATCH")
+	router.HandleFunc("/certificates/{id}/transfers", DeclineTransferHandler).Methods("PATCH")
 	router.HandleFunc("/certificates", GetCertificatesHandler).Methods("GET")
 	router.HandleFunc("/certificates/{id}", GetCertificateHandler).Methods("GET")
 
