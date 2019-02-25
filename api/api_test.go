@@ -18,7 +18,7 @@ import (
 
 const GetCertificatesUrl = "/certificates"
 const CertificatesUrlWithId = "/certificates/{id}"
-const GetUserJohnCertificatesUrl = "/users/John/certificates"
+const GetUserJohnCertificatesUrl = "/users/{userId}/certificates"
 const CreateTransferUrl = "/certificates/{id}/transfers"
 
 var mockData = make([]Certificate, 1)
