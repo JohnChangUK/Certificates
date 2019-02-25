@@ -46,6 +46,7 @@ func badRequest(w http.ResponseWriter, message string) {
 	fmt.Fprintf(w, message)
 }
 
+// Pre-populates the total certificates loaded in memory
 func MockCertificates(certificates *[]Certificate) {
 	var emptyCertificates []Certificate
 	*certificates = append(emptyCertificates,
