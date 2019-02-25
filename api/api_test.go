@@ -145,13 +145,7 @@ func TestGetCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "id", "1")
-	responseBodyBytes := getResponseBody(t, req, GetCertificateHandler)
-
-	var payload Certificate
-	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
-	if jsonUnmarshalErr != nil {
-		t.Fatal(jsonUnmarshalErr)
-	}
+	payload := unmarshalCertificate(t, req, GetCertificateHandler)
 
 	var correctCertificate Certificate
 	for _, certificate := range certificates {
