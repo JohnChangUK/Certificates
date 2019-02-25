@@ -141,7 +141,7 @@ func CancelTransferHandler(w http.ResponseWriter, req *http.Request) {
 
 	for _, certificate := range certificates {
 		if certificate.Id == params["id"] && certificate.OwnerId == authorization {
-			certificate.Transfer = &Transfer{}
+			*certificate.Transfer = Transfer{}
 
 			EncodeToJson(w, Transfer{}.TransferDeclined())
 			return
