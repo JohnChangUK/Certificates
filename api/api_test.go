@@ -15,7 +15,8 @@ import (
 	"testing"
 )
 
-const GetCertificatesUrl = "localhost:8000/certificates"
+const GetCertificatesUrl = "/certificates"
+const CertificatesUrlWithId = "/certificates/{id}"
 const GetUserJohnCertificatesUrl = "/users/John/certificates"
 
 var mockData = make([]Certificate, 1)
@@ -33,7 +34,7 @@ func TestGetUserCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "userId", "John")
-	responseBodyBytes := getResponseBody(t, req, err, GetUserCertificatesHandler)
+	responseBodyBytes := getResponseBody(t, req, GetUserCertificatesHandler)
 
 	var payload []Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -53,7 +54,7 @@ func TestCreateCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "userId", "John")
-	responseBodyBytes := getResponseBody(t, req, err, CreateCertificateHandler)
+	responseBodyBytes := getResponseBody(t, req, CreateCertificateHandler)
 
 	var payload Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -67,14 +68,14 @@ func TestCreateCertificateHandler(t *testing.T) {
 }
 
 func TestUpdateCertificateHandler(t *testing.T) {
-	req, err := http.NewRequest("PUT", GetCertificatesUrl, strings.NewReader(
+	req, err := http.NewRequest("PUT", CertificatesUrlWithId, strings.NewReader(
 		`{"Title": "Updated Certificate", "Year": 3000, "Note": "Updated note"}`))
 	if err != nil {
 		t.Fatalf("Not able to create request: %v", err)
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "id", "1")
-	responseBodyBytes := getResponseBody(t, req, err, UpdateCertificateHandler)
+	responseBodyBytes := getResponseBody(t, req, UpdateCertificateHandler)
 
 	var payload Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -87,6 +88,27 @@ func TestUpdateCertificateHandler(t *testing.T) {
 	assert.True(t, reflect.DeepEqual("Updated note", payload.Note))
 }
 
+func TestDeleteCertificateHandler(t *testing.T) {
+	// This is to reset the number of certificates in memory, aka add 1 single mock certificate
+	utils.AddMockCertificate(&certificates)
+
+	req, err := http.NewRequest("DELETE", CertificatesUrlWithId, nil)
+	if err != nil {
+		t.Fatalf("Not able to create request: %v", err)
+	}
+
+	req = addAuthAndSetPathVariables(req, "John", "id", "1")
+	responseBodyBytes := getResponseBody(t, req, DeleteCertificateHandler)
+
+	var payload []Certificate
+	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
+	if jsonUnmarshalErr != nil {
+		t.Fatal(jsonUnmarshalErr)
+	}
+
+	assert.True(t, reflect.DeepEqual([]Certificate{}, payload))
+}
+
 func TestGetCertificateHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", GetCertificatesUrl, nil)
 	if err != nil {
@@ -94,7 +116,7 @@ func TestGetCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "id", "1")
-	responseBodyBytes := getResponseBody(t, req, err, GetCertificateHandler)
+	responseBodyBytes := getResponseBody(t, req, GetCertificateHandler)
 
 	var payload Certificate
 	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
@@ -118,7 +140,7 @@ func addAuthAndSetPathVariables(req *http.Request, auth string, pathKey string, 
 	return req
 }
 
-func getResponseBody(t *testing.T, req *http.Request, err error, f func(http.ResponseWriter,
+func getResponseBody(t *testing.T, req *http.Request, f func(http.ResponseWriter,
 	*http.Request)) []byte {
 	recorder := startMockHttpServer(req, f)
 	response := recorder.Result()
@@ -129,6 +151,7 @@ func getResponseBody(t *testing.T, req *http.Request, err error, f func(http.Res
 		t.Fatalf("Could not read response %v", err)
 	}
 
+	defer response.Body.Close()
 	return responseBodyBytes
 }
 
