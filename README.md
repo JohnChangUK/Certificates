@@ -1,7 +1,6 @@
 # Certificates Back-End
 
-- Backend server fulfilling the purpose of adding, creating, updating and deleting certificates
-onto the Blockchain
+- Backend server fulfilling the purpose of performing CRUD operations on certificates for Verisart
 ```
 User A creates a certificate
 1. User A fills in the certificate details on the front-end and creates a certificate
