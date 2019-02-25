@@ -1,12 +1,32 @@
 # Certificates Back-End
 
+- Backend server fulfilling the purpose of adding, creating, updating and deleting certificates
+onto the Blockchain
+```
+User A creates a certificate
+1. User A fills in the certificate details on the front-end and creates a certificate
+
+User A updates a certificate
+1. User A views a list of their certificates, clicks on one to open the edit page
+2. The user updates the relevant information and saves the certificate
+
+User A transfers a certificate
+1. User A views a list of their certificates, clicks on one to transfer
+2. The user enters the information of the person (User B) transferring to and submits.
+
+User B accepts transferred certificates
+
+1. User B recieves an email with a link to accept the transferred certificate
+2. User B opens the accept transfer page and clicks "Accept" to finish the transfer
+3. User B views a list of their certificates which includes the newly accepted certificate.
+```
+
 ## Start the server
 Run the executable in the root of the project `certificates.exe`
 ```$xslt
 ./certificates.exe 
 ```
 - This will start the server on localhost:8000, ready for requests
-
 
 ## Build the project
 - Clone the repository
@@ -30,7 +50,7 @@ Method: PUT     /certificates/{id}/transfers        "User B accepts received tra
 Method: PATCH   /certificates/{id}/transfers        "User B declines received transfer request"
 ```
 
-## Use of API
+## Usage of API
 ### Creating a certificate
 
 - When creating a new certificate, make a POST request to the endpoint `localhost:8080/certificates`
