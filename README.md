@@ -1,4 +1,4 @@
-# Certificates Back-End Task
+# Certificates Back-End
 
 ## Implemented Endpoints
 
@@ -19,6 +19,8 @@ Method: PATCH   /certificates/{id}/transfers        "User B declines received tr
 - When creating a new certificate, make a POST request to the endpoint `localhost:8080/certificates`
 and provide the `Title`, `Year` and `Note` in the Body of the Request
 - You must pass in the headers the `Authorization` value, which is the `User Id`. In this instance, it's `John`
+![Alt text](AuthorizationHeader.png)
+
 ```$xslt
 {
 	"title": "New Verisart certificate",
