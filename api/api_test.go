@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	. "github.com/JohnChangUK/Certificates/constants"
 	. "github.com/JohnChangUK/Certificates/model"
 	"github.com/JohnChangUK/Certificates/utils"
 	"github.com/gorilla/mux"
@@ -18,6 +19,7 @@ import (
 const GetCertificatesUrl = "/certificates"
 const CertificatesUrlWithId = "/certificates/{id}"
 const GetUserJohnCertificatesUrl = "/users/John/certificates"
+const CreateTransferUrl = "/certificates/{id}/transfers"
 
 var mockData = make([]Certificate, 1)
 
@@ -36,11 +38,7 @@ func TestGetUserCertificateHandler(t *testing.T) {
 	req = addAuthAndSetPathVariables(req, "John", "userId", "John")
 	responseBodyBytes := getResponseBody(t, req, GetUserCertificatesHandler)
 
-	var payload []Certificate
-	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
-	if jsonUnmarshalErr != nil {
-		t.Fatal(jsonUnmarshalErr)
-	}
+	payload := unmarshalCertificatesArray(responseBodyBytes, t)
 
 	assert.True(t, reflect.DeepEqual(payload, mockData))
 }
@@ -54,13 +52,7 @@ func TestCreateCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "userId", "John")
-	responseBodyBytes := getResponseBody(t, req, CreateCertificateHandler)
-
-	var payload Certificate
-	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
-	if jsonUnmarshalErr != nil {
-		t.Fatal(jsonUnmarshalErr)
-	}
+	payload := unmarshalCertificate(t, req, CreateCertificateHandler).(Certificate)
 
 	assert.True(t, reflect.DeepEqual("New Certificate", payload.Title))
 	assert.True(t, reflect.DeepEqual(2019, payload.Year))
@@ -75,13 +67,7 @@ func TestUpdateCertificateHandler(t *testing.T) {
 	}
 
 	req = addAuthAndSetPathVariables(req, "John", "id", "1")
-	responseBodyBytes := getResponseBody(t, req, UpdateCertificateHandler)
-
-	var payload Certificate
-	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
-	if jsonUnmarshalErr != nil {
-		t.Fatal(jsonUnmarshalErr)
-	}
+	payload := unmarshalCertificate(t, req, UpdateCertificateHandler).(Certificate)
 
 	assert.True(t, reflect.DeepEqual("Updated Certificate", payload.Title))
 	assert.True(t, reflect.DeepEqual(3000, payload.Year))
@@ -109,6 +95,22 @@ func TestDeleteCertificateHandler(t *testing.T) {
 	assert.True(t, reflect.DeepEqual([]Certificate{}, payload))
 }
 
+func TestCreateTransferHandler(t *testing.T) {
+	utils.AddMockCertificate(&certificates)
+
+	req, err := http.NewRequest("POST", CreateTransferUrl, strings.NewReader(
+		`{"id": "UserB", "email": "userb@gmail.com", "name": "User B"}`))
+	if err != nil {
+		t.Fatalf("Not able to create request: %v", err)
+	}
+
+	req = addAuthAndSetPathVariables(req, "John", "id", "1")
+	payload := unmarshalCertificate(t, req, CreateTransferHandler).(Certificate)
+
+	assert.True(t, reflect.DeepEqual("userb@gmail.com", payload.Transfer.To))
+	assert.True(t, reflect.DeepEqual(Pending, payload.Transfer.Status))
+}
+
 func TestGetCertificateHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", GetCertificatesUrl, nil)
 	if err != nil {
@@ -132,6 +134,26 @@ func TestGetCertificateHandler(t *testing.T) {
 	}
 
 	assert.True(t, reflect.DeepEqual(correctCertificate, payload))
+}
+
+func unmarshalCertificate(t *testing.T, req *http.Request, f func(http.ResponseWriter, *http.Request)) interface{} {
+	responseBodyBytes := getResponseBody(t, req, f)
+	var payload Certificate
+	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
+	if jsonUnmarshalErr != nil {
+		t.Fatal(jsonUnmarshalErr)
+	}
+
+	return payload
+}
+
+func unmarshalCertificatesArray(responseBodyBytes []byte, t *testing.T) []Certificate {
+	var payload []Certificate
+	jsonUnmarshalErr := json.Unmarshal([]byte(string(bytes.TrimSpace(responseBodyBytes))), &payload)
+	if jsonUnmarshalErr != nil {
+		t.Fatal(jsonUnmarshalErr)
+	}
+	return payload
 }
 
 func addAuthAndSetPathVariables(req *http.Request, auth string, pathKey string, pathValue string) *http.Request {
