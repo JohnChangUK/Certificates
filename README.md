@@ -1,5 +1,22 @@
 # Certificates Back-End
 
+## Start the server
+Run the executable in the root of the project `certificates.exe`
+```$xslt
+./certificates.exe 
+```
+- This will start the server on localhost:8000, ready for requests
+
+
+## Build the project
+- Clone the repository
+```
+git clone git@github.com:JohnChangUK/Certificates.git
+cd Certificates
+go build -o certificates.exe
+./certificates.exe 
+```
+
 ## Implemented Endpoints
 
 ```$xslt

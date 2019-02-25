@@ -147,20 +147,3 @@ func startMockHttpServer(req *http.Request, f func(http.ResponseWriter, *http.Re
 
 	return recorder
 }
-
-/**
-* Creates a multi dimensional array of Certificates
-* Payload of HTTP Handlers return a structure of [][]Certificate
- */
-//func createMultiDimensionalCertificateArray(id string, title string, ownerId string, year int, note string, transfer *Transfer) {
-//	mockData = make([]Certificate, 1)
-//
-//	for i := 0; i < 1; i++ {
-//		mockData[i] = make([]Certificate, 0, 2)
-//		vector := make([]Certificate, 2)
-//		for j := 0; j < 1; j++ {
-//			vector[j] = Certificate{Id: id, Title: title, OwnerId: ownerId, Year: year, Note: note, Transfer: transfer}
-//			mockData[i] = append(mockData[i], vector[j])
-//		}
-//	}
-//}
