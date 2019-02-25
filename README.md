@@ -1,6 +1,7 @@
 # Certificates Back-End
 
 - Backend server fulfilling the purpose of performing CRUD operations on certificates for Verisart
+- API's designed with REST architecture
 ```
 User A creates a certificate
 1. User A fills in the certificate details on the front-end and creates a certificate
