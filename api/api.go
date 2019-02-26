@@ -96,7 +96,6 @@ func CreateTransferHandler(w http.ResponseWriter, req *http.Request) {
 			var user User
 			DecodeFromJson(w, req, &user)
 
-			user.Id = authorization
 			certificate.Transfer = &Transfer{To: user.Email, Status: Pending}
 			certificates = append(certificates, certificate)
 
