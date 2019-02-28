@@ -1,8 +1,9 @@
 # Certificates Back-End
 
-- Backend server fulfilling the purpose of performing CRUD operations on certificates for Verisart
+- Backend server fulfilling the purpose of performing CRUD operations on certificates
 - API's designed with REST architecture
 - API Handlers can be found under `api/api.go`
+- Written in Golang
 ```
 User A creates a certificate
 1. User A fills in the certificate details on the front-end and creates a certificate
@@ -61,7 +62,7 @@ and provide the `Title`, `Year` and `Note` in the Body of the Request
 
 ```$xslt
 {
-	"title": "New Verisart certificate",
+	"title": "New certificate",
 	"year": 2019,
 	"note": "New note"
 }
@@ -72,7 +73,7 @@ User Id as the certificate owner Id and an empty Transfer object
 ```$xslt
 {
     "id": "bhpi8r6db2297ufreulg",
-    "title": "New Verisart certificate",
+    "title": "New certificate",
     "created_at": "2019-02-24T23:10:36.090193214Z",
     "owner_id": "John",
     "year": 2019,
@@ -92,7 +93,7 @@ and provide the `Title`, `Year` and `Note` in the body of the request.
 path variable: `localhost:8000/certificates/bhpi8r6db2297ufreulg`
 ```$xslt
 {
-	"title": "Updated Verisart certificate",
+	"title": "Updated certificate",
 	"year": 2019,
 	"note": "Updated note"
 }
@@ -102,7 +103,7 @@ Payload response:
 ```$xslt
 {
     "id": "bhpi8r6db2297ufreulg",
-    "title": "Updated Verisart certificate",
+    "title": "Updated certificate",
     "created_at": "2019-02-24T23:10:36.090193214Z",
     "owner_id": "John",
     "year": 2019,
@@ -130,7 +131,7 @@ Payload response:
 ```$xslt
 {
     "id": "bhpi8r6db2297ufreulg",
-    "title": "Updated Verisart certificate",
+    "title": "Updated certificate",
     "created_at": "2019-02-24T23:10:36.090193214Z",
     "owner_id": "John",
     "year": 2019,
@@ -170,7 +171,7 @@ Payload:
 ```$xslt
 {
     "id": "bhpi8r6db2297ufreulg",
-    "title": "Updated Verisart certificate",
+    "title": "Updated certificate",
     "created_at": "2019-02-24T23:10:36.090193214Z",
     "owner_id": "UserB",
     "year": 2019,
@@ -197,7 +198,7 @@ If User B declines, the payload returns:
 ```$xslt
 {
     "id": "bhpi8r6db2297ufreulg",
-    "title": "Updated Verisart certificate",
+    "title": "Updated certificate",
     "created_at": "2019-02-24T23:10:36.090193214Z",
     "owner_id": "John",
     "year": 2019,
